@@ -1,0 +1,20 @@
+const pptr = require('puppeteer');
+
+(async () => {
+  // 1. Launch browser in headful mode so that we can click around and see how
+  // script works.
+  const browser = await pptr.launch({
+    headless: false,
+  });
+  const page = await browser.newPage();
+  // 2. Add a |window.reportEvent| function in the page that will simply log
+  // passed object to Node.js console.
+  await page.exposeFunction('reportEvent', info => console.log(info));
+  // 3. Hook document with capturing event listeners that sniff all the important
+  // information from the event and report it back to Node.js
+  await page.evaluateOnNewDocument(() => {
+    document.addEventListener('click', e => reportEvent({targetName: e.target.tagName, eventType: 'click'}), true /* capture */);
+  });
+  // 4. Navigate the page; try clicking around the website.
+  await page.goto('https://example.com');
+})();
